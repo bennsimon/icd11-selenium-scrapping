@@ -49,12 +49,19 @@ public class CollectionServiceImpl implements CollectionService {
         long subCategoryCount = 0;
         long typeCount = 0;
         long variationCount = 0;
+
         Thread.sleep(2000);
+
+        String childLinkExpression = ".//a[@class='ygtvspacer']";
+        String childTitleExpression = ".//a[starts-with(@class, 'ygtvlabel ')]";
+        String childListExpression = ".//div[@class='ygtvchildren']//div[@class='ygtvitem']";
+        String linkAttrib = "data-id";
+
         for (WebElement categoryElement : webElementCategoryList) {
-            String categoryTitle = categoryElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getText();
-            String categoryLink = categoryElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getAttribute("data-id");
-            categoryElement.findElement(By.xpath(".//a[@class='ygtvspacer']")).click();
-            List<WebElement> webElementSubcategoryList = categoryElement.findElements(By.xpath(".//div[@class='ygtvchildren']//div[@class='ygtvitem']"));
+            String categoryTitle = categoryElement.findElement(By.xpath(childTitleExpression)).getText();
+            String categoryLink = categoryElement.findElement(By.xpath(childTitleExpression)).getAttribute(linkAttrib);
+            categoryElement.findElement(By.xpath(childLinkExpression)).click();
+            List<WebElement> webElementSubcategoryList = categoryElement.findElements(By.xpath(childListExpression));
             long categoryId = ++categoryCount;
             Category category = categoryRepository.findById(categoryId).orElse(null);
             if (category == null) {
@@ -66,9 +73,10 @@ public class CollectionServiceImpl implements CollectionService {
             }
             for (WebElement subcategoryElement : webElementSubcategoryList) {
                 Thread.sleep(1000);
-                String subcategoryTitle = subcategoryElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getText();
-                String subcategoryLink = subcategoryElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getAttribute("data-id");
-                subcategoryElement.findElement(By.xpath(".//a[@class='ygtvspacer']")).click();
+
+                String subcategoryTitle = subcategoryElement.findElement(By.xpath(childTitleExpression)).getText();
+                String subcategoryLink = subcategoryElement.findElement(By.xpath(childTitleExpression)).getAttribute(linkAttrib);
+                subcategoryElement.findElement(By.xpath(childLinkExpression)).click();
                 long subCategoryId = ++subCategoryCount;
                 Subcategory subcategory = subcategoryRepository.findById(subCategoryId).orElse(null);
                 if (subcategory == null) {
@@ -79,13 +87,15 @@ public class CollectionServiceImpl implements CollectionService {
                     subcategory.setCategoryId(category.getId());
                 }
                 Thread.sleep(2000);
-                List<WebElement> webElementTypeList = subcategoryElement.findElements(By.xpath(".//div[@class='ygtvchildren']//div[@class='ygtvitem']"));
+
+                List<WebElement> webElementTypeList = subcategoryElement.findElements(By.xpath(childListExpression));
                 for (WebElement typeElement : webElementTypeList) {
+
                     Thread.sleep(1000);
 
-                    String typeTitle = typeElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getText();
-                    String typeLink = typeElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getAttribute("data-id");
-                    typeElement.findElement(By.xpath(".//a[@class='ygtvspacer']")).click();
+                    String typeTitle = typeElement.findElement(By.xpath(childTitleExpression)).getText();
+                    String typeLink = typeElement.findElement(By.xpath(childTitleExpression)).getAttribute(linkAttrib);
+                    typeElement.findElement(By.xpath(childLinkExpression)).click();
                     long typeId = ++typeCount;
                     Type type = typeRepository.findById(typeId).orElse(null);
                     if (type == null) {
@@ -97,18 +107,18 @@ public class CollectionServiceImpl implements CollectionService {
                         typeRepository.save(type);
                     }
                     Thread.sleep(2000);
-                    List<WebElement> webElementSubTypeList = typeElement.findElements(By.xpath(".//div[@class='ygtvchildren']//div[@class='ygtvitem']"));
+                    List<WebElement> webElementSubTypeList = typeElement.findElements(By.xpath(childListExpression));
                     for (WebElement subTypeElement : webElementSubTypeList) {
                         Thread.sleep(1000);
-                        String subTypeTitle = subTypeElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getText();
-                        String subTypeLink = subTypeElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getAttribute("data-id");
-                        subTypeElement.findElement(By.xpath(".//a[@class='ygtvspacer']")).click();
+                        String subTypeTitle = subTypeElement.findElement(By.xpath(childTitleExpression)).getText();
+                        String subTypeLink = subTypeElement.findElement(By.xpath(childTitleExpression)).getAttribute(linkAttrib);
+                        subTypeElement.findElement(By.xpath(childLinkExpression)).click();
                         Thread.sleep(2000);
-                        List<WebElement> webElementVariationList = subTypeElement.findElements(By.xpath(".//div[@class='ygtvchildren']//div[@class='ygtvitem']"));
+                        List<WebElement> webElementVariationList = subTypeElement.findElements(By.xpath(childListExpression));
                         for (WebElement variationElement : webElementVariationList) {
                             Thread.sleep(1000);
-                            String variationTitle = variationElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getText();
-                            String variationLink = variationElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getAttribute("data-id");
+                            String variationTitle = variationElement.findElement(By.xpath(childTitleExpression)).getText();
+                            String variationLink = variationElement.findElement(By.xpath(childTitleExpression)).getAttribute(linkAttrib);
                             String code = variationTitle.trim().split(" ")[0];
                             long variationId = ++variationCount;
                             Variation variation = variationRepository.findById(variationId).orElse(null);
