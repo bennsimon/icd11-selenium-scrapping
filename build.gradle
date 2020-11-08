@@ -1,0 +1,54 @@
+group 'icd10'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+
+apply plugin: 'org.springframework.boot'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven { url "https://repo.spring.io/libs-release" }
+}
+
+buildscript {
+    configurations {
+        compile.exclude module: "spring-boot-starter-tomcat"
+    }
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
+
+    }
+}
+
+springBoot {
+    executable = true
+}
+jar {
+    baseName = 'icd10'
+    version = '1.1.0'
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile group: 'org.json', name: 'json', version: '20160810'
+    compile("org.springframework.boot:spring-boot-starter-undertow")
+    compile 'javax.xml.bind:jaxb-api:2.3.0'
+    compile group: 'org.seleniumhq.selenium', name: 'htmlunit-driver', version: '2.21'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.9.1'
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.2'
+
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    runtimeOnly 'org.postgresql:postgresql'
+}
