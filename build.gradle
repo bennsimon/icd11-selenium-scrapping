@@ -1,54 +1,36 @@
-group 'icd10'
+plugins {
+    id 'org.springframework.boot' version '2.4.0-SNAPSHOT'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
+}
+
+group 'icd11'
 version '1.0-SNAPSHOT'
-
-apply plugin: 'java'
-apply plugin: 'idea'
-
-apply plugin: 'org.springframework.boot'
-
 sourceCompatibility = 1.8
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+bootJar {
+    destinationDirectory = file('/root/output/icd-files')
+}
 
 repositories {
     mavenCentral()
-    mavenLocal()
-    maven { url "https://repo.spring.io/libs-release" }
-}
-
-buildscript {
-    configurations {
-        compile.exclude module: "spring-boot-starter-tomcat"
-    }
-    repositories {
-        mavenCentral()
-        mavenLocal()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
-
-    }
-}
-
-springBoot {
-    executable = true
-}
-jar {
-    baseName = 'icd10'
-    version = '1.1.0'
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile group: 'org.json', name: 'json', version: '20160810'
-    compile("org.springframework.boot:spring-boot-starter-undertow")
-    compile 'javax.xml.bind:jaxb-api:2.3.0'
-    compile group: 'org.seleniumhq.selenium', name: 'htmlunit-driver', version: '2.21'
-    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.9.1'
-    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.2'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "org.springframework.boot:spring-boot-starter-undertow"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
 
-    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation group: 'org.seleniumhq.selenium', name: 'htmlunit-driver', version: '2.44.0'
+//    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.9.1'
     runtimeOnly 'org.postgresql:postgresql'
 }

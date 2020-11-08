@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class CollectionServiceImpl implements CollectionService {
-    private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(CollectionServiceImpl.class.getName());
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -57,7 +56,7 @@ public class CollectionServiceImpl implements CollectionService {
             categoryElement.findElement(By.xpath(".//a[@class='ygtvspacer']")).click();
             List<WebElement> webElementSubcategoryList = categoryElement.findElements(By.xpath(".//div[@class='ygtvchildren']//div[@class='ygtvitem']"));
             long categoryId = ++categoryCount;
-            Category category = categoryRepository.findOne(categoryId);
+            Category category = categoryRepository.findById(categoryId).orElse(null);
             if (category == null) {
                 category = categoryRepository.save(new Category(categoryId, categoryTitle, categoryLink));
             } else {
@@ -71,7 +70,7 @@ public class CollectionServiceImpl implements CollectionService {
                 String subcategoryLink = subcategoryElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getAttribute("data-id");
                 subcategoryElement.findElement(By.xpath(".//a[@class='ygtvspacer']")).click();
                 long subCategoryId = ++subCategoryCount;
-                Subcategory subcategory = subcategoryRepository.findOne(subCategoryId);
+                Subcategory subcategory = subcategoryRepository.findById(subCategoryId).orElse(null);
                 if (subcategory == null) {
                     subcategory = subcategoryRepository.save(new Subcategory(subCategoryId, category.getId(), subcategoryTitle, subcategoryLink));
                 } else {
@@ -88,7 +87,7 @@ public class CollectionServiceImpl implements CollectionService {
                     String typeLink = typeElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getAttribute("data-id");
                     typeElement.findElement(By.xpath(".//a[@class='ygtvspacer']")).click();
                     long typeId = ++typeCount;
-                    Type type = typeRepository.findOne(typeId);
+                    Type type = typeRepository.findById(typeId).orElse(null);
                     if (type == null) {
                         type = typeRepository.save(new Type(typeId, subcategory.getId(), typeTitle, typeLink));
                     } else {
@@ -112,7 +111,7 @@ public class CollectionServiceImpl implements CollectionService {
                             String variationLink = variationElement.findElement(By.xpath(".//a[starts-with(@class, 'ygtvlabel ')]")).getAttribute("data-id");
                             String code = variationTitle.trim().split(" ")[0];
                             long variationId = ++variationCount;
-                            Variation variation = variationRepository.findOne(variationId);
+                            Variation variation = variationRepository.findById(variationId).orElse(null);
                             String s = variationTitle.substring(code.trim().length());
                             if (variation == null) {
                                 variationRepository.save(new Variation(variationId, code.trim(), type.getId(), s.trim(), variationLink));
@@ -137,7 +136,7 @@ public class CollectionServiceImpl implements CollectionService {
                     if (webElementSubTypeList.isEmpty()) {
                         String code = typeTitle.trim().split(" ")[0];
                         long variationId = ++variationCount;
-                        Variation variation = variationRepository.findOne(variationId);
+                        Variation variation = variationRepository.findById(variationId).orElse(null);
                         String s = typeTitle.substring(code.trim().length()).trim();
                         if (variation == null) {
                             variationRepository.save(new Variation(variationId, code.trim(), type.getId(), s, typeLink));

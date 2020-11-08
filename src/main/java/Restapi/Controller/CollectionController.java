@@ -17,7 +17,7 @@ public class CollectionController {
     private CollectionService collectionService;
 
     @Async
-    @GetMapping("/icd10")
+    @GetMapping("/icd")
     public ResponseEntity<ModelMap> index() {
         try {
             collectionService.startCollection();
