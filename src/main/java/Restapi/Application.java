@@ -8,10 +8,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 
-/**
- * Created by Benn on 2/28/2017.
- */
-
 @SpringBootApplication
 @EnableAsync
 public class Application {
@@ -25,8 +21,8 @@ public class Application {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(100);
         executor.setMaxPoolSize(100);
-        executor.setQueueCapacity(10000);
-        executor.setThreadNamePrefix("icd10-");
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("icd-");
         executor.initialize();
         return executor;
     }
