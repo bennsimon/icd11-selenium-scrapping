@@ -38,17 +38,6 @@ public class CollectionServiceImpl implements CollectionService {
     private VariationRepository variationRepository;
 
     @Override
-    public List<Variation> findAllByNameOrCode(String name, String code) {
-        if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(code)) {
-            return variationRepository.findAllByNameContainingOrCodeContaining(name, code);
-        } else if (StringUtils.isNotBlank(name)) {
-            return variationRepository.findAllByNameContaining(name);
-        } else {
-            return variationRepository.findAllByCodeContaining(code);
-        }
-    }
-
-    @Override
     public void startCollection() throws InterruptedException {
         System.setProperty("webdriver.gecko.driver", "/home/benn/Downloads/geckodriver-v0.28.0-linux64/geckodriver");
         FirefoxOptions firefoxOptions = new FirefoxOptions();
@@ -57,14 +46,11 @@ public class CollectionServiceImpl implements CollectionService {
         FirefoxDriver driver = new FirefoxDriver(firefoxOptions);
 
         String baseUrl = "https://icd.who.int/browse11/l-m/en";
-        driver.manage()
-                .timeouts()
-                .implicitlyWait(5, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
         driver.get(baseUrl);
-
+        System.out.println("Level 1 " + baseUrl);
         WebDriverWait wait = new WebDriverWait(driver, 15);
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id='ygtvcontentel29']/a/span")));
-
         List<WebElement> webElementCategoryList = driver.findElementsByXPath("//div[@id='ygtvc1']//div[@class='ygtvitem']");
         long categoryCount = 0;
         long subCategoryCount = 0;
@@ -78,27 +64,25 @@ public class CollectionServiceImpl implements CollectionService {
         String linkAttrib = "data-id";
 
         for (WebElement categoryElement : webElementCategoryList) {
+
             WebElement linkElement = categoryElement.findElement(By.xpath(childTitleExpression));
             String categoryTitle = linkElement.getText();
             String categoryLink = linkElement.getAttribute(linkAttrib);
 
-            WebElement webElementChildCell = categoryElement.findElement(By.xpath(childCell));
-
-            if (!hasExpandIcon(childLinkExpression, webElementChildCell)) continue;
+            if (checkForExpandIcon(childLinkExpression, childCell, categoryElement)) continue;
 
             List<WebElement> webElementSubcategoryList = categoryElement.findElements(By.xpath(childListExpression));
-
-            Category category = saveCategory(categoryCount, categoryTitle, categoryLink);
+            long categoryId = ++categoryCount;
+            //Category category = saveCategory(categoryId, categoryTitle, categoryLink);
 
             for (WebElement subcategoryElement : webElementSubcategoryList) {
                 linkElement = subcategoryElement.findElement(By.xpath(childTitleExpression));
                 String subcategoryTitle = linkElement.getText();
                 String subcategoryLink = linkElement.getAttribute(linkAttrib);
-                webElementChildCell = subcategoryElement.findElement(By.xpath(childCell));
+                if (checkForExpandIcon(childLinkExpression, childCell, subcategoryElement)) continue;
 
-                if (!hasExpandIcon(childLinkExpression, webElementChildCell)) continue;
-
-                Subcategory subcategory = saveSubCategory(subCategoryCount, subcategoryTitle, subcategoryLink, category);
+                long subCategoryId = ++subCategoryCount;
+                //Subcategory subcategory = saveSubCategory(subCategoryId, category.getId(), subcategoryTitle, subcategoryLink);
 
                 List<WebElement> webElementTypeList = subcategoryElement.findElements(By.xpath(childListExpression));
                 for (WebElement typeElement : webElementTypeList) {
@@ -106,46 +90,42 @@ public class CollectionServiceImpl implements CollectionService {
                     String typeTitle = linkElement.getText();
                     String typeLink = linkElement.getAttribute(linkAttrib);
 
-                    webElementChildCell = typeElement.findElement(By.xpath(childCell));
+                    if (checkForExpandIcon(childLinkExpression, childCell, typeElement)) continue;
 
-                    if (!hasExpandIcon(childLinkExpression, webElementChildCell)) continue;
-
-                    Type type = saveType(typeCount, typeTitle, typeLink, subcategory);
+                    long typeId = ++typeCount;
+                    //Type type = saveType(typeId, subcategory.getId(), typeTitle, typeLink);
 
                     List<WebElement> webElementSubTypeList = typeElement.findElements(By.xpath(childListExpression));
-
-                    if (webElementSubTypeList.isEmpty()) {
-                        saveVariation(variationCount, typeTitle, typeLink, type);
-                        continue;
-                    }
-
                     for (WebElement subTypeElement : webElementSubTypeList) {
                         linkElement = subTypeElement.findElement(By.xpath(childTitleExpression));
                         String subTypeTitle = linkElement.getText();
                         String subTypeLink = linkElement.getAttribute(linkAttrib);
 
-                        if (!hasExpandIcon(childLinkExpression, webElementChildCell)) continue;
+                        if (checkForExpandIcon(childLinkExpression, childCell, subTypeElement)) continue;
 
                         List<WebElement> webElementVariationList = subTypeElement.findElements(By.xpath(childListExpression));
-
-                        if (webElementVariationList.isEmpty()) {
-                            saveVariation(variationCount, subTypeTitle, subTypeLink, type);
-                            continue;
-                        }
-
                         for (WebElement variationElement : webElementVariationList) {
                             linkElement = variationElement.findElement(By.xpath(childTitleExpression));
                             String variationTitle = linkElement.getText();
                             String variationLink = linkElement.getAttribute(linkAttrib);
-                            saveVariation(variationCount, variationTitle, variationLink, type);
+                            long variationId = ++variationCount;
+                            //saveVariation(variationId, variationTitle, variationLink, type);
+
                             System.out.printf("%s %s %s %s %s%n", categoryTitle, subcategoryTitle, typeTitle, subTypeTitle, variationTitle);
                             System.out.printf("%s %s %s %s %s%n", categoryLink, subcategoryLink, typeLink, subTypeLink, variationLink);
                         }
-
+                        if (webElementVariationList.isEmpty()) {
+                            String code = subTypeTitle.trim().split(" ")[0];
+                            //variationRepository.save(new Variation(++variationCount, code.trim(), type.getId(), subTypeTitle.substring(code.trim().length()).trim(), subTypeLink));
+                        }
                         System.out.printf("%s %s %s %s%n", categoryTitle, subcategoryTitle, typeTitle, subTypeTitle);
                         System.out.printf("%s %s %s %s%n", categoryLink, subcategoryLink, typeLink, subTypeLink);
                     }
 
+                    if (webElementSubTypeList.isEmpty()) {
+                        long variationId = ++variationCount;
+                        //saveVariation(variationId, typeTitle, typeLink, type);
+                    }
                     System.out.printf("%s %s %s%n", categoryTitle, subcategoryTitle, typeTitle);
                     System.out.printf("%s %s %s%n", categoryLink, subcategoryLink, typeLink);
                 }
@@ -156,23 +136,20 @@ public class CollectionServiceImpl implements CollectionService {
         driver.close();
     }
 
-    private Type saveType(long typeCount, String typeTitle, String typeLink, Subcategory subcategory) {
-        long typeId = ++typeCount;
-        Type type = typeRepository.findById(typeId).orElse(null);
-        if (type == null) {
-            type = typeRepository.save(new Type(typeId, subcategory.getId(), typeTitle, typeLink));
+    private boolean checkForExpandIcon(String childLinkExpression, String childCell, WebElement subcategoryElement) throws InterruptedException {
+        WebElement xwebElementChildCell = subcategoryElement.findElement(By.xpath(childCell));
+        String dbackground = xwebElementChildCell.getCssValue("background-image");
+        if (StringUtils.isNotBlank(dbackground)) {
+            xwebElementChildCell.findElement(By.xpath(childLinkExpression)).click();
+            Thread.sleep(2000);
         } else {
-            type.setName(typeTitle);
-            type.setLink(typeLink);
-            type.setSubcategoryId(subcategory.getId());
-            typeRepository.save(type);
+            return true;
         }
-        return type;
+        return false;
     }
 
-    private void saveVariation(long variationCount, String variationTitle, String variationLink, Type type) {
+    private void saveVariation(long variationId, String variationTitle, String variationLink, Type type) {
         String code = variationTitle.trim().split(" ")[0];
-        long variationId = ++variationCount;
         Variation variation = variationRepository.findById(variationId).orElse(null);
         String s = variationTitle.substring(code.trim().length());
         if (variation == null) {
@@ -186,32 +163,7 @@ public class CollectionServiceImpl implements CollectionService {
         }
     }
 
-    private Subcategory saveSubCategory(long subCategoryCount, String subcategoryTitle, String subcategoryLink, Category category) {
-        long subCategoryId = ++subCategoryCount;
-        Subcategory subcategory = subcategoryRepository.findById(subCategoryId).orElse(null);
-        if (subcategory == null) {
-            subcategory = subcategoryRepository.save(new Subcategory(subCategoryId, category.getId(), subcategoryTitle, subcategoryLink));
-        } else {
-            subcategory.setLink(subcategoryLink);
-            subcategory.setName(subcategoryTitle);
-            subcategory.setCategoryId(category.getId());
-        }
-        return subcategory;
-    }
-
-    private boolean hasExpandIcon(String childLinkExpression, WebElement webElementChildCell) throws InterruptedException {
-        String background = webElementChildCell.getCssValue("background-image");
-        if (StringUtils.isNotBlank(background)) {
-            webElementChildCell.findElement(By.xpath(childLinkExpression)).click();
-            Thread.sleep(2000);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private Category saveCategory(long categoryCount, String categoryTitle, String categoryLink) {
-        long categoryId = ++categoryCount;
+    private Category saveCategory(long categoryId, String categoryTitle, String categoryLink) {
         Category category = categoryRepository.findById(categoryId).orElse(null);
         if (category == null) {
             category = categoryRepository.save(new Category(categoryId, categoryTitle, categoryLink));
@@ -221,5 +173,41 @@ public class CollectionServiceImpl implements CollectionService {
             categoryRepository.save(category);
         }
         return category;
+    }
+
+    private Type saveType(long typeId, long subCategoryId, String typeTitle, String typeLink) {
+        Type type = typeRepository.findById(typeId).orElse(null);
+        if (type == null) {
+            type = typeRepository.save(new Type(typeId, subCategoryId, typeTitle, typeLink));
+        } else {
+            type.setName(typeTitle);
+            type.setLink(typeLink);
+            type.setSubcategoryId(subCategoryId);
+            typeRepository.save(type);
+        }
+        return type;
+    }
+
+    private Subcategory saveSubCategory(long subCategoryId, long categoryId, String subcategoryTitle, String subcategoryLink) {
+        Subcategory subcategory = subcategoryRepository.findById(subCategoryId).orElse(null);
+        if (subcategory == null) {
+            subcategory = subcategoryRepository.save(new Subcategory(subCategoryId, categoryId, subcategoryTitle, subcategoryLink));
+        } else {
+            subcategory.setLink(subcategoryLink);
+            subcategory.setName(subcategoryTitle);
+            subcategory.setCategoryId(categoryId);
+        }
+        return subcategory;
+    }
+
+    @Override
+    public List<Variation> findAllByNameOrCode(String name, String code) {
+        if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(code)) {
+            return variationRepository.findAllByNameContainingOrCodeContaining(name, code);
+        } else if (StringUtils.isNotBlank(name)) {
+            return variationRepository.findAllByNameContaining(name);
+        } else {
+            return variationRepository.findAllByCodeContaining(code);
+        }
     }
 }
