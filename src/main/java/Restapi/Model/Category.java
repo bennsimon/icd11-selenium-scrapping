@@ -1,5 +1,7 @@
 package Restapi.Model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -8,6 +10,7 @@ import javax.persistence.Table;
 @Table(name = "category")
 public class Category {
     @Id
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private long id;
     private String name;
     private String link;
@@ -19,14 +22,6 @@ public class Category {
         this.id = id;
         this.name = name;
         this.link = link;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -47,7 +42,7 @@ public class Category {
 
     @Override
     public String toString() {
-        return "Icd10Category{" +
+        return "Category{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", link='" + link + '\'' +

@@ -1,11 +1,14 @@
 package Restapi.Model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "variation")
 public class Variation {
     @Id
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private long id;
     private String code;
     @Column(name = "type_id", nullable = false)
@@ -63,27 +66,27 @@ public class Variation {
         return link;
     }
 
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
     public void setLink(String link) {
         this.link = link;
     }
 
-    public Type getIcd10Type() {
-        return type;
-    }
-
-    public void setIcd10Type(Type type) {
-        this.type = type;
-    }
-
     @Override
     public String toString() {
-        return "Icd10Variation{" +
+        return "Variation{" +
                 "id=" + id +
                 ", code='" + code + '\'' +
                 ", typeId=" + typeId +
                 ", name='" + name + '\'' +
                 ", link='" + link + '\'' +
-                ", icd10Type=" + type +
+                ", type=" + type +
                 '}';
     }
 }

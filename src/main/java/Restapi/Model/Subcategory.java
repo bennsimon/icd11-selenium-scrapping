@@ -1,11 +1,14 @@
 package Restapi.Model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "subcategory")
 public class Subcategory {
     @Id
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private long id;
     @Column(nullable = false, name = "category_id")
     private long categoryId;
@@ -57,21 +60,22 @@ public class Subcategory {
         this.link = link;
     }
 
-    public Category getIcd10Category() {
+    public Category getCategory() {
         return category;
     }
 
-    public void setIcd10Category(Category category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 
     @Override
     public String toString() {
-        return "Icd10Subcategory{" +
+        return "Subcategory{" +
                 "id=" + id +
                 ", categoryId=" + categoryId +
                 ", name='" + name + '\'' +
                 ", link='" + link + '\'' +
+                ", category=" + category +
                 '}';
     }
 }
